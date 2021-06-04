@@ -1,177 +1,152 @@
+#include<iostream>
+#include<string.h>
+#include<stdio.h>
+#include<stdlib.h>
+using namespace std;
 
- #include<iostream>
- #include<algorithm>
- #include<vector>
+//structure to define weighted edge
+struct Edge{
+    int src,dest,weight;
 
- using namespace std;
+};
+
+//structure to represent a connnected graph
+struct Graph{ 
+    int V;
+    int E;
+
+    struct Edge * edge;
+    
+};//here graph is an array of edges because we want to sort them on the basis of edges. no other pattern. 
+
+// create a graph with V vertices and E edges
+struct Graph* createGraph(int V, int E){
+    struct Graph* graph = new Graph[sizeof(struct Graph)];
+    graph->V = V;
+    graph->E = E;
+    graph->edge = new Edge[sizeof(struct Edge)];
+    return graph;
+};
+
+//a structure to represent a subset for union and find
+struct subset{
+    int parent;
+    int rank;
+
+};
 
 
- class Edge{  //class to store an edge in a graph
-   public:
-   int source, destination, weight;
-   Edge( int source, int destination, int weight)
-   { //constructor
-     this->source = source;
-     this->destination = destination;
-     this->weight = weight;
-   }
- };
+//find set of an element
+// path compression technique
+int find(struct subset subsets[], int i){
+    if(subsets[i].parent != i){
+        subsets[i].parent = find(subsets,subsets[i].parent);
+        
+    }
+    return subsets[i].parent;
+}
 
 
- class Graph{  //class for a graph
-   public:
-   vector<Edge>  All_edges;// to hold list of all edges of the graph
+//A function that does union of two sets of x and y
+void Union(struct subset subsets[],int x,int y){
+    int xroot = find(subsets,x);
+    int yroot = find(subsets,y);
 
-   //member function to add an edge to the undirected graph
-   void addEdge(int s, int d, int w)
-   {
-      Edge obj(s, d, w);//create one edge  
-      All_edges.push_back(obj);//push one edge to edge container
-   }
+    //attach smaller rank tree under root of high rank tree
+    //union by rank
+    if(subsets[xroot].rank < subsets[yroot].rank){
+        subsets[xroot].parent = yroot;
 
-   };
+    }
+    else if(subsets[xroot].rank > subsets[yroot].rank){
+        subsets[yroot].parent = xroot;
+    }//if ranks are same, then make one as root and increment/
+    //its rank by one
+    else{
+            //ToDo:: 
+            subsets[yroot].parent = xroot;
+            subsets[xroot].rank++; 
+    }
+}
 
-  //declare a displayMST function to define it later
-  void displayMST(const vector<Edge> &);
 
-//class for finding MST in the graph
-  class Kruskal {
+int myComp(const void*a, const void*b){  //to sort edges in ascending order
+    struct Edge*a1 = (struct Edge*)a;
+    struct Edge*b1 = (struct Edge*)b;
+    return a1->weight > b1->weight;
 
-  public:
-  int totalVertices;//total vertices
+}
 
-  vector<pair<int,int>> subsets;
-  // subsets will hold list of [parent - rank] pairs
-  // which we will use in Union Find 
-  // by path compression algorithm
+void KruskalMST(struct Graph* graph){
+    int V = graph->V;
+    struct Edge result[V];
+    int e = 0;
+    int i = 0;
 
-  vector<Edge> mst;//declare a container to store edges of MST
+    qsort(graph->edge,graph->E,sizeof(graph->edge[0]),myComp);
 
- //constructor
-    Kruskal( int totalVertices)
-    {
-       this->totalVertices =totalVertices;
+    struct subset *subsets = (struct subset*) malloc(V * sizeof(struct subset));
 
-       subsets.resize(totalVertices);
-       //resize subsets equal to total vertices
+    for(int v = 0; v < V;++v){
+        subsets[v].parent = v;
+        subsets[v].rank = 0;
 
-       for( int i= 0; i<totalVertices; ++i)
-        {
-          subsets[i].first =i; //set parent value equal to respective index
-          subsets[i].second = 0; //set rank value equal to zero
+    }
+
+    while(e< V-1){
+        struct Edge next_edge = graph->edge[i++];
+
+        int x = find(subsets,next_edge.src);
+        int y = find(subsets, next_edge.dest);
+
+        if(x != y){
+            result[e++] = next_edge;
+            Union(subsets,x,y);
         }
     }
 
-    static bool comparator( Edge &a , Edge& b)
-    {
-      return a.weight < b.weight;
-    }
-
-    void createMST( Graph& graph)
-    {
-      //sort the edges of graph in increasing order of their weights
-     sort( graph.All_edges.begin(), graph.All_edges.end(), comparator );
-
-    int i=0, e=0;
-    // i =  variable to keep track of total vertices 
-    // e = variable to keep track of total edges in MST formed so far
-    // total edges in MST  == (total vertices - 1)
-
-    //iterate through list of edges in a graph
-    while( e < (totalVertices-1) && i < graph.All_edges.size() )
-    {
-      //store current edge
-      Edge currEdge = graph.All_edges[i++];
-
-      //find absolute parent 
-     //to detect if current edge form a cycle with MST formed so far
-      int x = _find( currEdge.source);//pass current source vertex
-      int y = _find( currEdge.destination );//pass current destination vertex
-
-      if( x != y)//is they don't form a cycle 
-      {   
-        //push current edge to MST
-        mst.push_back( currEdge );
-        //then make that two vertex Union
-        // in other words to create edge between two vertices
-        makeUnion( x, y);
-      }
-    }
-
-    //finally display the MST created by the above function
-    displayMST( mst );
-
-    }
-
-   int _find(  int i)
-   {
-       if( subsets[i].first!=i)//if index is not equal to parent value
-       {
-         //recursively call _find()
-         // and pass current parent value 
-         subsets[i].first = _find( subsets[i].first );
-
-       }
-
-       return subsets[i].first;
-   }
-
-   void makeUnion( int x, int y)
-   {   
-     int xroot = _find( x);
-     int yroot = _find(y);
-
-    // if-else for rank comparison & update parent-rank values
-     if( subsets[xroot].second < subsets[yroot].second)
-     { 
-       subsets[xroot].first= yroot;
-     }
-     else if( subsets[xroot].second > subsets[yroot].second)
-     {
-       subsets[yroot].first=xroot;
-     }
-     else{
-       subsets[xroot].first=yroot;
-       subsets[yroot].second++;
-      }
-   }
-
- };
-
-  // funciton to display all edges of MST & total cost
-  void displayMST(  const vector<Edge>&  edges)
-  { 
-     int totalMinimumCost=0;
-    cout<<"All MST edges [source - destination = weight]\n";
-
-    for( auto edge : edges)
-    {
-      cout<<edge.source<<" - "<<edge.destination<<" = "<<edge.weight<<'\n';
-
-      totalMinimumCost+=edge.weight;
-    }
-    cout<<"total minimum cost = "<<totalMinimumCost<<endl;
-  }
+    cout << "Following are the edges in the constructed MST\n";
+    for(int i=0;i<e;++i){
+            printf("%d -- %d == %d\n",result[i].src,result[i].dest,result[i].weight);
+            
+        }
+    // return;
+    return;
+    
+}
 
 
- int main()
- {
+int main(){
+    int V = 4;
+    int E = 5;
+    struct Graph* graph = createGraph(V,E);
 
-   Graph g;
-   //add edeges to graph
-   g.addEdge(0, 1, 50);
-   g.addEdge( 0 , 2, 10);
-   g.addEdge(0, 3, 50);
-   g.addEdge(1, 4, 30);
-   g.addEdge(3, 4, 100);
-   g.addEdge(2, 4, 100);
+    //add edge 0-1
+    graph->edge[0].src = 0;
+    graph->edge[0].dest = 1;
+    graph->edge[0].weight = 10;
 
-   //create and object of kruskal class
-   Kruskal graph(5);
+    //add edge 0-2
+    graph->edge[1].src = 0;
+    graph->edge[1].dest = 2;
+    graph->edge[1].weight = 6;
 
-   //call kruskal class's member function to find MST
-   graph.createMST( g);
+    //add edge 0-3
+    graph->edge[2].src = 0;
+    graph->edge[2].dest = 3;
+    graph->edge[2].weight = 5;
 
-   return 0;
+    //add edge 1-3
+    graph->edge[3].src = 1;
+    graph->edge[3].dest = 3;
+    graph->edge[3].weight = 15;
 
- }
+    //add edge 2-3
+    graph->edge[4].src = 2;
+    graph->edge[4].dest = 3;
+    graph->edge[4].weight = 4;
+
+    KruskalMST(graph);
+
+    return 0;
+}
