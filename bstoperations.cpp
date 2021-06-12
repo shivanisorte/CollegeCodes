@@ -1,142 +1,157 @@
 #include <iostream>
-
 using namespace std;
 
-class Node {
-    public: 
-        int data;
-        Node *left, *right;
+class BstNode {
+public:
+	int height, data;
+	BstNode *left, *right;
 };
 
-class BinarySearchTree {
-    public:
-    Node *root;
-    
-    BinarySearchTree() {
-        root = NULL;
-    }
-
-    Node* create(int);   // Takes data as parameter
-    Node* insertNode(Node *, Node *);   
-    void inorderTraversal(Node *);
-    void display(Node *);
-    Node *insertRec(Node *, int);
-    int mirror(Node *);
-    int height(Node *);
-    void print(Node *, int);
-    void level(Node *);
-};
-
-Node* BinarySearchTree :: create(int data) {
-    Node *new_node = new Node;
-    new_node -> data = data;
-    new_node -> left = NULL;
-    new_node -> right = NULL;
-
-    if (root == NULL) {
-        root = new_node;
-    }
-    else {
-        root = insertNode(root, new_node);
-        cout<<"created new node";
-    }
-     
-    return root;
+BstNode* create_node( int data )
+{
+	BstNode* newNode = new BstNode;
+	newNode->data = data;
+	newNode->left = newNode->right = NULL;
+	return newNode;
 }
 
-Node* BinarySearchTree :: insertNode(Node *root, Node *new_node) {
-    
-    if (root == NULL) {
-        root = new_node;
-    }
-
-    if (new_node -> data < root -> data) {
-        insertNode(root -> left, new_node);
-    }
-    else {
-        insertNode(root -> right, new_node);
-    }
-
-    return root;
+int height( BstNode *pt )
+{
+	int lt, rt;
+	if( pt != NULL )
+	{
+		lt = height( pt->left );
+		rt = height( pt->right );
+		if( lt > rt )
+			return lt+1;
+		else
+			return rt+1;
+	}
 }
 
-void BinarySearchTree :: inorderTraversal(Node *t) {
-    if (t != NULL) {
-        inorderTraversal(t -> left);
-        cout << t -> data << " ";
-        inorderTraversal(t -> right);
-    }
+void inorder_leaf( BstNode *ptr )
+{
+	if( ptr != NULL )
+	{
+		inorder_leaf( ptr->left );
+		if ( (ptr->left == NULL) && (ptr->right == NULL))
+			cout << ptr->data << " ";
+		inorder_leaf ( ptr->right );
+	}
 }
 
-void BinarySearchTree :: display(Node * temp) {
-    // Node *temp;
-    // temp = root;
-    inorderTraversal(temp);
+void mirror( BstNode *node ) 
+{
+	if( node == NULL )
+		return;
+	else {
+		BstNode *temp;
+		mirror( node->left );
+		mirror( node->right );
+		temp = node->left;
+        node->left = node->right;
+        node->right=temp;
+
+	}
 }
 
-int BinarySearchTree :: mirror(Node *node) {
-    if (node == NULL) {
-        return -1;
-    }
-    else {
-        Node *temp;
-        mirror(node -> left);
-        mirror(node -> right);
-        temp = node -> left;
-        node -> left = node -> right;
-        node -> right = temp;
-    }
+void print ( BstNode *root, int level )
+{
+	if ( root == NULL )
+		return;
+	else if ( level == 1)
+		cout<< root->data << " ";
+	else if ( level > 1 )
+	{
+		print( root->left, level-1 );
+		print( root->right, level-1 );
+	}
 }
 
-int BinarySearchTree :: height(Node *root) {
-    int left_height, right_height;
-    
-    if (root == NULL) {
-        return -1;
-    }
-    else {
-        left_height = height(root -> left);
-        right_height = height(root -> right);
-
-        if (left_height > right_height) {
-            return (left_height + 1);
-        }
-        else {
-            return (right_height + 1);
-        }
-    }
+void level( BstNode *root )
+{
+	int h = height( root );
+	int i;
+	for (i=1; i<=h; i++)
+	{
+		print( root, i );
+		cout<< endl;
+	}
+}
+BstNode* insert( BstNode* root, int data )
+{
+	if ( root == NULL )
+	{
+		root = create_node(data);
+	}
+	if ( data < root->data )
+	{
+		root->left = insert( root->left, data );
+	}
+	else if ( data>root -> data )
+	{
+		root->right = insert(root->right, data);
+	}
+	return root ;
 }
 
-void BinarySearchTree :: print(Node *root, int level) {
-    if (root == NULL) {
-        return;
-    }
-    else if (level == 1) {
-        cout << root -> data << " ";
-    }
-    else if (level > 1) {
-        print(root -> left, level - 1);
-        print(root -> right, level - 1);
-    }
+void inorder( BstNode*ptr )
+{
+	if (ptr != NULL )
+	{
+		inorder( ptr->left );
+		cout<< ptr->data << " ";
+		inorder( ptr->right );
+	}
 }
 
-void BinarySearchTree :: level(Node *root) {
-    int h = height(root);
-    int i;
-    for (i = 1; i <= h; i++) {
-        print(root, i);
-        cout << root << i << endl;
-    }
-}
+int main()
+{
+	BstNode *root =NULL;
+	char ch ='y';
+	int data,h,choice;
+	while(ch=='y'|| ch=='y')
+	{
+		cout<<"Enter 1 to insert an element, 2 to display the BST, 3 to display the height of the BST, 4 to display Mirror of the BST, 5 to Display the BST level-wise"<<endl;
+		cin>>choice;
+		switch( choice )
+		{
+			case 1:
+			   cout << endl << "Enter data value" << endl;
+			   cin >> data;
+			   root = insert( root, data );
+			   break;
+			case 2:
+			   inorder( root );
+			   break;
+		    case 3:
+		       h= height( root );
+			   cout<< "The height of the BST is : "<< h << endl;
+			   break;
+			case 4:
+			   cout<< "The mirror image of the BST is : "<< endl;
+			   mirror( root );
+			   inorder( root );
+			   mirror( root );
+			   break;
+			case 5:
+				cout<< endl <<" BST displayed level-wise : "<< endl;
+				level( root );
+				mirror( root );
+				cout<< endl << " Mirror BST displayed level-wise : " << endl;
+				level( root );
+				mirror( root );
+				break;
+			case 6:
+				inorder_leaf( root );
+				break;
+			default:
+				cout<< "Invalid choice" << endl;
 
-int main() {
-    Node *root;
-    BinarySearchTree bstObj;
-    root = bstObj.create(1);
-    root = bstObj.create(2);
-    root = bstObj.create(3);
-    root = bstObj.create(4);
-    root = bstObj.create(5);
-    bstObj.print(root, 1);
-    bstObj.display(root);
+			
+		}
+		cout << endl << "Do you wanrt to continue (y/n)? " << endl;
+		cin >> ch;
+	} 
+	return 0;      
 }
