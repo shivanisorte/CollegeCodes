@@ -1,4 +1,4 @@
-/* Program to construct an expression treefor a given prefix expressionand perform recursive and non-recursive traversals */
+/* Program to construct an expression tree for a given prefix expressionand perform recursive and non-recursive traversals */
 
 #include <iostream>
 
