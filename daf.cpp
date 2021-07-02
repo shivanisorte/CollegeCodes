@@ -38,16 +38,16 @@ linear_probe::linear_probe()    // constructing hash table
     cout<<"\nEnter filename: ";           
     cin>>table;
     rec.status = 1;                // rec is the reference variable which is used to access data members of class
-    rec.link = -1;       //table link initially 1
+    rec.link = -1;       //table link initially -1
     tab.open(table, ios::binary | ios::out);      // open table here to write the output
     tab.close();               // close the table it is inbuilt function
-    for(i=0; i<SIZE; i++)          // size of hash table from 0th index to 9th index (table size=10)
+    for(i=0; i<SIZE; i++)   // size of hash table from 0th index to 9th index (table size=10)
         write(i);
 }
 
 void linear_probe::displayall()              // to display the keys
 {
-    int i =1;
+    int i;
     for(i = 0; i< SIZE; i++)
         display(i);
 }
