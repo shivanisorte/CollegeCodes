@@ -122,7 +122,7 @@ sizeof(insertrec));
  if(flag != 1)
  {
  cout << "Error this rec was not inserted";
- cout << "The fi le is full after this index";
+ cout << "The file is full after this index";
  getch(); return;
  }
  getch();
